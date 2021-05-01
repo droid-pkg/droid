@@ -1,5 +1,6 @@
 mod commands;
 
+use anyhow::Result;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -11,13 +12,17 @@ enum Droid {
     Uninstall { package: String },
 }
 
-fn main() {
-    match Droid::from_args() {
-        Droid::Install { package } => {
-            commands::install(package);
-        }
-        Droid::Uninstall { package } => {
-            commands::uninstall(package);
-        }
+#[tokio::main]
+async fn main() -> Result<()> {
+    match run().await {
+        Ok(res) => std::process::exit(res),
+        Err(e) => return Err(e),
     }
+}
+
+async fn run() -> Result<i32> {
+    match Droid::from_args() {
+        Droid::Install { package } => return commands::install(package).await,
+        Droid::Uninstall { package } => return commands::uninstall(package).await,
+    };
 }
