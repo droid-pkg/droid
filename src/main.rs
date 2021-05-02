@@ -5,11 +5,18 @@ use structopt::StructOpt;
 
 #[derive(StructOpt)]
 enum Droid {
+    /// Installs a package from the repos
     #[structopt(aliases = &["-S", "add", "i"])]
-    Install { package: String },
-
+    Install {
+        /// The name of the package to install
+        package: String,
+    },
+    /// Uninstalls a package from your computer
     #[structopt(aliases = &["-R", "remove", "rm", "un"])]
-    Uninstall { package: String },
+    Uninstall {
+        /// The name of the packge to uninstall
+        package: String,
+    },
 }
 
 #[tokio::main]
