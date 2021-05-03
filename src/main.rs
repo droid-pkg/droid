@@ -2,6 +2,7 @@ extern crate serde;
 extern crate serde_json;
 
 mod commands;
+mod utils;
 
 use anyhow::Result;
 use structopt::StructOpt;
