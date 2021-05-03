@@ -1,7 +1,8 @@
 use anyhow::Result;
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use std::env::var;
-use std::process::Command;
+
+use crate::utils::download;
 
 pub async fn install(package: String) -> Result<i32> {
     let client = reqwest::Client::new();
@@ -21,15 +22,13 @@ pub async fn install(package: String) -> Result<i32> {
         .json::<serde_json::Value>()
         .await?;
 
-    Command::new("curl")
-        .arg("-L")
-        .arg(format!(
+    download(
+        format!(
             "https://github.com/mrdogebro/quicknav/releases/download/{}/quicknav",
             releases["tag_name"].as_str().unwrap()
-        ))
-        .arg("-o")
-        .arg(format!("{}/quicknav", &droid_bin_path))
-        .output()?;
+        ),
+        format!("{}/quicknav", &droid_bin_path),
+    )?;
 
     Ok(0)
 }
