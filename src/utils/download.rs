@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::process::Command;
 
 pub fn download(url: String, output_file: String) -> Result<i32> {
     Command::new("curl")
@@ -7,4 +8,6 @@ pub fn download(url: String, output_file: String) -> Result<i32> {
         .arg("-o")
         .arg(output_file)
         .output()?;
+
+    Ok(0)
 }
