@@ -1,13 +1,21 @@
 use anyhow::Result;
-use std::process::Command;
+use tokio::{fs, io::AsyncWriteExt};
 
-pub fn download(url: String, output_file: String) -> Result<i32> {
-    Command::new("curl")
-        .arg("-L")
-        .arg(url)
-        .arg("-o")
-        .arg(output_file)
-        .output()?;
+pub async fn download(url: String, output_file_path: String) -> Result<i32> {
+    let client = reqwest::Client::new();
+
+    let mut file_download = client.get(url).send().await?;
+    let mut output_file = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(output_file_path)
+        .await?;
+
+    while let Some(chunk) = file_download.chunk().await? {
+        output_file.write_all(&chunk).await?;
+    }
+
+    println!("Downloaded");
 
     Ok(0)
 }
