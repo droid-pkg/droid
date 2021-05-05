@@ -2,7 +2,7 @@ use anyhow::Result;
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use std::env::var;
 
-use crate::utils::download;
+use crate::utils;
 
 // repos file needs to contain
 // ==========================
@@ -42,7 +42,7 @@ pub async fn install(package: String) -> Result<i32> {
         .json::<serde_json::Value>()
         .await?;
 
-    download(
+    utils::download(
         format!(
             "https://github.com/mrdogebro/quicknav/releases/download/{}/quicknav",
             releases["tag_name"].as_str().unwrap()
