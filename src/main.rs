@@ -33,7 +33,7 @@ async fn main() -> Result<()> {
 
 async fn run() -> Result<i32> {
     match Droid::from_args() {
-        Droid::Install { package } => return commands::install(package).await?,
-        Droid::Uninstall { package } => return commands::uninstall(package).await?,
+        Droid::Install { package } => return commands::install(package).await,
+        Droid::Uninstall { package } => return commands::uninstall(package).await,
     };
 }
