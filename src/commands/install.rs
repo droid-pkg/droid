@@ -19,6 +19,8 @@ use crate::utils::download;
 // source/git only
 // - build_depends: arr<str>
 // - version_prefix: Opt<str>
+// - build func
+// - install func
 // bin only
 // - file name
 
