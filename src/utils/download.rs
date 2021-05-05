@@ -1,7 +1,7 @@
 use anyhow::Result;
 use tokio::{fs, io::AsyncWriteExt};
 
-pub async fn download(url: String, output_file_path: String) -> Result<i32> {
+pub async fn download(url: String, output_file_path: String, file_name: String) -> Result<i32> {
     let client = reqwest::Client::new();
 
     let mut file_download = client.get(url).send().await?;
