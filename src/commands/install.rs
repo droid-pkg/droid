@@ -1,6 +1,7 @@
 use anyhow::Result;
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use std::env::var;
+use std::fs;
 
 use crate::utils;
 
@@ -32,7 +33,7 @@ pub async fn install(package: String) -> Result<i32> {
     let mut headers = HeaderMap::new();
     headers.insert(USER_AGENT, HeaderValue::from_static("reqwest"));
 
-    std::fs::create_dir_all(&droid_bin_path)?;
+    fs::create_dir_all(&droid_bin_path)?;
 
     let releases = client
         .get("https://api.github.com/repos/MrDogeBro/quicknav/releases/latest")
