@@ -1,0 +1,4 @@
+types: [bin]
+depends: []
+bin:
+  file_name: quicknav
