@@ -28,6 +28,7 @@ pub async fn install(package: String) -> Result<i32> {
             releases["tag_name"].as_str().unwrap()
         ),
         format!("{}/quicknav", &droid_bin_path),
+        "quicknav".to_string(),
     )
     .await?;
 
