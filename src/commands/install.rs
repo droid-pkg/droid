@@ -43,6 +43,9 @@ pub async fn install(package: String) -> Result<i32> {
         .json::<serde_json::Value>()
         .await?;
 
+    let demo_file_string = fs::read_to_string("./demo-files/droid.yaml")?;
+    utils::InstallInstructions::parse(demo_file_string)?;
+
     utils::download(
         format!(
             "https://github.com/mrdogebro/quicknav/releases/download/{}/quicknav",
