@@ -4,6 +4,24 @@ use std::env::var;
 
 use crate::utils::download;
 
+// repos file needs to contain
+// ==========================
+// - name: str
+// - description: str
+// - author: str
+// - repo_name: str
+// - license: str
+
+// install instructions file needs to contain
+// ==========================================
+// - types: arr (source, git, bin)
+// - depends: arr<str>
+// source/git only
+// - build_depends: arr<str>
+// - version_prefix: Opt<str>
+// bin only
+// - file name
+
 pub async fn install(package: String) -> Result<i32> {
     let client = reqwest::Client::new();
     let droid_path = format!("{}/.droid", var("HOME").unwrap());
