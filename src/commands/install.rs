@@ -43,8 +43,12 @@ pub async fn install(package: String) -> Result<i32> {
         .json::<serde_json::Value>()
         .await?;
 
-    let demo_file_string = fs::read_to_string("./demo-files/droid.yaml")?;
-    utils::InstallInstructions::parse(demo_file_string)?;
+    #[cfg(debug_assertions)]
+    let instructions_file = fs::read_to_string("./demo-files/droid.yaml")?;
+    #[cfg(not(debug_assertions))]
+    let instructions_file: String = "types: [bin]\ndepends: []";
+
+    let instructions = utils::InstallInstructions::parse(instructions_file)?;
 
     utils::download(
         format!(
