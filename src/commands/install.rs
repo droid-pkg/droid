@@ -1,6 +1,7 @@
 use anyhow::Result;
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use std::fs;
+use std::os::unix::fs::PermissionsExt;
 
 use crate::utils;
 
@@ -64,6 +65,8 @@ async fn install_bin(
     let bin = instructions.bin;
 
     if let Some(bin) = bin {
+        let file_path = format!("{}/{}", &droid_bin_path, bin.file_name);
+
         utils::download(
             format!(
                 "https://github.com/{}/{}/releases/download/{}/{}",
@@ -72,10 +75,14 @@ async fn install_bin(
                 releases["tag_name"].as_str().unwrap(),
                 bin.file_name
             ),
-            format!("{}/{}", &droid_bin_path, bin.file_name),
+            file_path.to_string(),
             "quicknav".to_string(),
         )
         .await?;
+
+        let mut perms = fs::metadata(file_path.to_string())?.permissions();
+        perms.set_mode(33261);
+        fs::set_permissions(file_path, perms)?;
     }
 
     Ok(0)
