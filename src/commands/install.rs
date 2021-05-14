@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
@@ -35,10 +35,10 @@ pub async fn install(package: String) -> Result<i32> {
 
     fs::create_dir_all(&droid_bin_path)?;
 
-    #[cfg(debug_assertions)]
-    let instructions_file = fs::read_to_string("./demo-files/quicknav.yaml")?;
-    #[cfg(not(debug_assertions))]
-    let instructions_file: String = "types: [bin]\ndepends: []";
+    // use in prod and when testing with files from repos
+    let instructions_file = get_instructions(client.clone(), package).await?;
+    // use when wanting to test with a local file
+    // let instructions_file = fs::read_to_string("./demo-files/quicknav.yaml")?;
 
     let instructions = utils::InstallInstructions::parse(instructions_file)?;
 
@@ -55,6 +55,38 @@ pub async fn install(package: String) -> Result<i32> {
     }
 
     Ok(0)
+}
+
+async fn get_instructions(client: reqwest::Client, package: String) -> Result<String> {
+    let official_repo_file = client
+        .get(format!(
+        "https://raw.githubusercontent.com/MrDogeBro/droid-repos/HEAD/official/{pkg}/{pkg}.yaml",
+        pkg = package
+    ))
+        .send()
+        .await?
+        .text()
+        .await?;
+
+    if !(official_repo_file == "404: Not Found") {
+        return Ok(official_repo_file);
+    }
+
+    let user_repo_file = client
+        .get(format!(
+            "https://raw.githubusercontent.com/MrDogeBro/droid-repos/HEAD/user/{pkg}/{pkg}.yaml",
+            pkg = package
+        ))
+        .send()
+        .await?
+        .text()
+        .await?;
+
+    if !(user_repo_file == "404: Not Found") {
+        return Ok(user_repo_file);
+    }
+
+    Err(anyhow!("Unable to find a package matching the given name."))
 }
 
 async fn install_bin(
