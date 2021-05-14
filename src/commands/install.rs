@@ -72,7 +72,7 @@ async fn install_bin(
                 releases["tag_name"].as_str().unwrap(),
                 bin.file_name
             ),
-            format!("{}/quicknav", &droid_bin_path),
+            format!("{}/{}", &droid_bin_path, bin.file_name),
             "quicknav".to_string(),
         )
         .await?;
