@@ -2,6 +2,11 @@ use anyhow::Result;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InstallInstructions {
+    pub name: String,
+    pub description: String,
+    pub author: String,
+    pub repo_name: String,
+    pub license: String,
     pub types: Vec<String>,
     pub depends: Vec<String>,
     pub build: Option<Build>,
