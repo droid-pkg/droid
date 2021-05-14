@@ -1,6 +1,5 @@
 use anyhow::Result;
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
-use std::env::var;
 use std::fs;
 
 use crate::utils;
