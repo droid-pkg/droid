@@ -1,3 +1,8 @@
+name: quicknav
+description: A way to quickly navigate your filesystem from the command line.
+author: MrDogeBro
+repo_name: quicknav
+license: MIT
 types: [bin]
 depends: []
 bin:
