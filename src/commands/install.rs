@@ -27,7 +27,7 @@ use crate::utils;
 
 pub async fn install(package: String) -> Result<i32> {
     let client = reqwest::Client::new();
-    let droid_path = format!("{}/.droid", var("HOME").unwrap());
+    let droid_path = format!("/usr/local/droid");
     let droid_bin_path = format!("{}/bin", droid_path);
 
     let mut headers = HeaderMap::new();
@@ -44,7 +44,7 @@ pub async fn install(package: String) -> Result<i32> {
         .await?;
 
     #[cfg(debug_assertions)]
-    let instructions_file = fs::read_to_string("./demo-files/droid.yaml")?;
+    let instructions_file = fs::read_to_string("./demo-files/quicknav.yaml")?;
     #[cfg(not(debug_assertions))]
     let instructions_file: String = "types: [bin]\ndepends: []";
 
