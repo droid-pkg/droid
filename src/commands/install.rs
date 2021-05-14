@@ -35,6 +35,13 @@ pub async fn install(package: String) -> Result<i32> {
 
     fs::create_dir_all(&droid_bin_path)?;
 
+    #[cfg(debug_assertions)]
+    let instructions_file = fs::read_to_string("./demo-files/quicknav.yaml")?;
+    #[cfg(not(debug_assertions))]
+    let instructions_file: String = "types: [bin]\ndepends: []";
+
+    let instructions = utils::InstallInstructions::parse(instructions_file)?;
+
     let releases = client
         .get("https://api.github.com/repos/MrDogeBro/quicknav/releases/latest")
         .headers(headers)
@@ -43,22 +50,34 @@ pub async fn install(package: String) -> Result<i32> {
         .json::<serde_json::Value>()
         .await?;
 
-    #[cfg(debug_assertions)]
-    let instructions_file = fs::read_to_string("./demo-files/quicknav.yaml")?;
-    #[cfg(not(debug_assertions))]
-    let instructions_file: String = "types: [bin]\ndepends: []";
+    if instructions.types.iter().any(|t| t == "bin") {
+        install_bin(releases, instructions, droid_bin_path).await?;
+    }
 
-    let instructions = utils::InstallInstructions::parse(instructions_file)?;
+    Ok(0)
+}
 
-    utils::download(
-        format!(
-            "https://github.com/mrdogebro/quicknav/releases/download/{}/quicknav",
-            releases["tag_name"].as_str().unwrap()
-        ),
-        format!("{}/quicknav", &droid_bin_path),
-        "quicknav".to_string(),
-    )
-    .await?;
+async fn install_bin(
+    releases: serde_json::Value,
+    instructions: utils::InstallInstructions,
+    droid_bin_path: String,
+) -> Result<i32> {
+    let bin = instructions.bin;
+
+    if let Some(bin) = bin {
+        utils::download(
+            format!(
+                "https://github.com/{}/{}/releases/download/{}/{}",
+                instructions.author,
+                instructions.repo_name,
+                releases["tag_name"].as_str().unwrap(),
+                bin.file_name
+            ),
+            format!("{}/quicknav", &droid_bin_path),
+            "quicknav".to_string(),
+        )
+        .await?;
+    }
 
     Ok(0)
 }
