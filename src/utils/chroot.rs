@@ -40,8 +40,6 @@ async fn macos_chroot(path: String) -> Result<()> {
     depends.sort();
     depends.dedup();
 
-    println!("{:#?}", depends);
-
     setup_chroot(
         path,
         files,
