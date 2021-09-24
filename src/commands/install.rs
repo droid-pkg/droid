@@ -5,59 +5,64 @@ use std::os::unix::fs::PermissionsExt;
 
 use crate::utils;
 
-// repos file needs to contain
-// ==========================
-// - name: str
-// - description: str
-// - author: str
-// - repo_name: str
-// - license: str
-
-// install instructions file needs to contain
-// ==========================================
-// - types: arr (source, git, bin)
-// - depends: arr<str>
-// source/git only
-// - build_depends: arr<str>
-// - version_prefix: Opt<str>
-// - build func
-// - install func
-// bin only
-// - file name
+struct RetreviedInstructions {
+    official: bool,
+    data: String,
+}
 
 pub async fn install(package: String) -> Result<i32> {
     let client = reqwest::Client::new();
     let droid_path = format!("/usr/local/droid");
     let droid_bin_path = format!("{}/bin", droid_path);
+    let droid_temp_path = format!("{}/temp", droid_path);
 
     let mut headers = HeaderMap::new();
     headers.insert(USER_AGENT, HeaderValue::from_static("reqwest"));
 
     fs::create_dir_all(&droid_bin_path)?;
+    fs::create_dir_all(&droid_temp_path)?;
 
     // use in prod and when testing with files from repos
-    let instructions_file = get_instructions(client.clone(), package).await?;
+    // let instructions_file = get_instructions(client.clone(), package).await?;
     // use when wanting to test with a local file
-    // let instructions_file = fs::read_to_string("./demo-files/quicknav.yaml")?;
+    let instructions_file = RetreviedInstructions {
+        official: false,
+        data: fs::read_to_string("./demo-files/quicknav.yaml")?,
+    };
 
-    let instructions = utils::InstallInstructions::parse(instructions_file)?;
+    let instructions = utils::InstallInstructions::parse(instructions_file.data)?;
 
     let releases = client
-        .get("https://api.github.com/repos/MrDogeBro/quicknav/releases/latest")
+        .get(format!(
+            "https://api.github.com/repos/{}/{}/releases/{}",
+            instructions.repo_name, instructions.repo_name, "latest"
+        ))
         .headers(headers)
         .send()
         .await?
         .json::<serde_json::Value>()
         .await?;
 
-    if instructions.types.iter().any(|t| t == "bin") {
-        install_bin(releases, instructions, droid_bin_path).await?;
+    if instructions_file.official {
+        if instructions.types.iter().any(|t| t == "bin") {
+            install_bin(releases, instructions, droid_bin_path).await?;
+        }
+    } else {
+        // if instructions.types.iter().any(|t| t == "source") {
+        // install_bin(releases, instructions, droid_bin_path).await?;
+        // }
+        let chroot_path = format!("{}/testing", droid_temp_path);
+
+        utils::build(chroot_path).await?;
     }
 
     Ok(0)
 }
 
-async fn get_instructions(client: reqwest::Client, package: String) -> Result<String> {
+async fn get_instructions(
+    client: reqwest::Client,
+    package: String,
+) -> Result<RetreviedInstructions> {
     let official_repo_file = client
         .get(format!(
         "https://raw.githubusercontent.com/MrDogeBro/droid-repos/HEAD/official/{pkg}/{pkg}.yaml",
@@ -69,7 +74,10 @@ async fn get_instructions(client: reqwest::Client, package: String) -> Result<St
         .await?;
 
     if !(official_repo_file == "404: Not Found") {
-        return Ok(official_repo_file);
+        return Ok(RetreviedInstructions {
+            official: true,
+            data: official_repo_file,
+        });
     }
 
     let user_repo_file = client
@@ -83,7 +91,10 @@ async fn get_instructions(client: reqwest::Client, package: String) -> Result<St
         .await?;
 
     if !(user_repo_file == "404: Not Found") {
-        return Ok(user_repo_file);
+        return Ok(RetreviedInstructions {
+            official: false,
+            data: user_repo_file,
+        });
     }
 
     Err(anyhow!("Unable to find a package matching the given name."))
@@ -102,13 +113,13 @@ async fn install_bin(
         utils::download(
             format!(
                 "https://github.com/{}/{}/releases/download/{}/{}",
-                instructions.author,
+                instructions.repo_owner,
                 instructions.repo_name,
                 releases["tag_name"].as_str().unwrap(),
                 bin.file_name
             ),
             file_path.to_string(),
-            "quicknav".to_string(),
+            bin.file_name,
         )
         .await?;
 
