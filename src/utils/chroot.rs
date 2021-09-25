@@ -1,10 +1,17 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use glob::glob;
+use nix::unistd::Uid;
 use std::fs;
 use std::os::unix::fs as ufs;
 use std::process::Command;
 
 pub async fn chroot(path: String) -> Result<()> {
+    if !Uid::effective().is_root() {
+        return Err(anyhow!(
+            "Droid must be run as root when installing packages from source!"
+        ));
+    }
+
     fs::create_dir_all(&path)?;
 
     if cfg!(target_os = "macos") {
@@ -20,7 +27,7 @@ pub async fn chroot(path: String) -> Result<()> {
 }
 
 async fn macos_chroot(path: String) -> Result<()> {
-    let copy: Vec<&str> = vec!["/bin/**/*", "/usr/lib/dyld", "/usr/lib/system/**/*"];
+    let copy: Vec<&str> = vec!["/bin/*", "/usr/lib/dyld", "/usr/lib/system/**/*"];
     let mut files: Vec<String> = vec![];
     let mut depends: Vec<String> = vec![];
 
