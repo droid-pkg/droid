@@ -2,7 +2,7 @@ use super::chroot;
 use anyhow::Result;
 use git2::Repository;
 
-pub async fn build(build_path: String) -> Result<i32> {
+pub async fn build(build_path: String, client: reqwest::Client) -> Result<i32> {
     chroot::chroot(build_path).await?;
 
     Repository::clone(
