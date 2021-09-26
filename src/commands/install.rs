@@ -64,7 +64,7 @@ pub async fn get_instructions(
     client: reqwest::Client,
     package: String,
 ) -> Result<RetreviedInstructions> {
-    let pkg_path = format!("{}/{}", package[1..], package[2..3]);
+    let pkg_path = format!("{}/{}", package[1..].to_string(), package[2..3].to_string());
 
     let official_repo_file = client
         .get(format!(
