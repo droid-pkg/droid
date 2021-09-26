@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::utils;
 
-struct RetreviedInstructions {
+pub struct RetreviedInstructions {
     official: bool,
     data: String,
 }
@@ -54,19 +54,22 @@ pub async fn install(package: String) -> Result<i32> {
         // }
         let chroot_path = format!("{}/{}", droid_temp_path, Uuid::new_v4());
 
-        utils::build(chroot_path).await?;
+        utils::build(chroot_path, client).await?;
     }
 
     Ok(0)
 }
 
-async fn get_instructions(
+pub async fn get_instructions(
     client: reqwest::Client,
     package: String,
 ) -> Result<RetreviedInstructions> {
+    let pkg_path = format!("{}/{}", package[1..], package[2..3]);
+
     let official_repo_file = client
         .get(format!(
-        "https://raw.githubusercontent.com/MrDogeBro/droid-repos/HEAD/official/{pkg}/{pkg}.yaml",
+        "https://raw.githubusercontent.com/MrDogeBro/droid-repos/HEAD/official/{pkg_path}/{pkg}.yaml",
+        pkg_path = pkg_path,
         pkg = package
     ))
         .send()
@@ -83,7 +86,8 @@ async fn get_instructions(
 
     let user_repo_file = client
         .get(format!(
-            "https://raw.githubusercontent.com/MrDogeBro/droid-repos/HEAD/user/{pkg}/{pkg}.yaml",
+            "https://raw.githubusercontent.com/MrDogeBro/droid-repos/HEAD/user/{pkg_path}/{pkg}.yaml",
+            pkg_path = pkg_path,
             pkg = package
         ))
         .send()
