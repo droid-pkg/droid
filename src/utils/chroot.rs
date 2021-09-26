@@ -47,6 +47,10 @@ async fn macos_chroot(path: String) -> Result<()> {
     depends.sort();
     depends.dedup();
 
+    depends.extend(macos_otool(depends.to_owned()).await?);
+    depends.sort();
+    depends.dedup();
+
     setup_chroot(
         path,
         files,
@@ -71,21 +75,24 @@ async fn unix_chroot(path: String) -> Result<()> {
 
 async fn macos_otool(files: Vec<String>) -> Result<Vec<String>> {
     let mut depends: Vec<String> = vec![];
-    let otool = Command::new("otool").arg("-L").args(&files).output()?;
 
-    for depend in String::from_utf8_lossy(&otool.stdout).lines() {
-        if depend.ends_with(":") {
-            continue;
+    for file in files {
+        let otool = Command::new("otool").arg("-L").arg(file).output()?;
+
+        for depend in String::from_utf8_lossy(&otool.stdout).lines() {
+            if depend.ends_with(":") {
+                continue;
+            }
+
+            depends.push(
+                depend
+                    .split_whitespace()
+                    .collect::<Vec<&str>>()
+                    .get(0)
+                    .unwrap()
+                    .to_string(),
+            );
         }
-
-        depends.push(
-            depend
-                .split_whitespace()
-                .collect::<Vec<&str>>()
-                .get(0)
-                .unwrap()
-                .to_string(),
-        );
     }
 
     Ok(depends)
@@ -107,7 +114,7 @@ async fn setup_chroot(
         "usr/include",
         "usr/lib",
         "usr/libexec",
-        "usr/local",
+        "usr/local/bin",
         "usr/sbin",
         "usr/share",
         "var/db",
@@ -125,11 +132,23 @@ async fn setup_chroot(
     }
 
     for file in files {
+        let mut file_path = file.split("/").collect::<Vec<&str>>();
+        file_path.remove(file_path.len() - 1);
+
+        fs::create_dir_all(format!("{}/{}", path, file_path.join("/")))?;
         fs::copy(&file, format!("{}{}", path, file))?;
     }
 
     for depend in depends {
-        fs::copy(&depend, format!("{}{}", path, depend))?;
+        let mut depend_path = depend.split("/").collect::<Vec<&str>>();
+        depend_path.remove(depend_path.len() - 1);
+
+        if let Err(_) = fs::create_dir_all(format!("{}/{}", path, depend_path.join("/"))) {
+            continue;
+        }
+        if let Err(_) = fs::copy(&depend, format!("{}{}", path, depend)) {
+            continue;
+        }
     }
 
     Ok(())
