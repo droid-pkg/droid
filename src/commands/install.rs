@@ -2,6 +2,7 @@ use anyhow::{anyhow, Result};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
+use uuid::Uuid;
 
 use crate::utils;
 
@@ -51,7 +52,7 @@ pub async fn install(package: String) -> Result<i32> {
         // if instructions.types.iter().any(|t| t == "source") {
         // install_bin(releases, instructions, droid_bin_path).await?;
         // }
-        let chroot_path = format!("{}/testing", droid_temp_path);
+        let chroot_path = format!("{}/{}", droid_temp_path, Uuid::new_v4());
 
         utils::build(chroot_path).await?;
     }
