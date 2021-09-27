@@ -7,8 +7,8 @@ use uuid::Uuid;
 use crate::utils;
 
 pub struct RetreviedInstructions {
-    official: bool,
-    data: String,
+    pub official: bool,
+    pub data: String,
 }
 
 pub async fn install(package: String) -> Result<i32> {
@@ -54,7 +54,7 @@ pub async fn install(package: String) -> Result<i32> {
         // }
         let chroot_path = format!("{}/{}", droid_temp_path, Uuid::new_v4());
 
-        utils::build(chroot_path, client).await?;
+        utils::build(chroot_path, client, instructions).await?;
     }
 
     Ok(0)
@@ -64,7 +64,13 @@ pub async fn get_instructions(
     client: reqwest::Client,
     package: String,
 ) -> Result<RetreviedInstructions> {
-    let pkg_path = format!("{}/{}", package[1..].to_string(), package[2..3].to_string());
+    let pkg_path: String;
+
+    if package.chars().count() > 3 {
+        pkg_path = format!("{}/{}", package[1..].to_string(), package[2..3].to_string());
+    } else {
+        pkg_path = format!("{}", package[1..].to_string());
+    }
 
     let official_repo_file = client
         .get(format!(
@@ -105,7 +111,7 @@ pub async fn get_instructions(
     Err(anyhow!("Unable to find a package matching the given name."))
 }
 
-async fn install_bin(
+pub async fn install_bin(
     releases: serde_json::Value,
     instructions: utils::InstallInstructions,
     droid_bin_path: String,
