@@ -74,10 +74,10 @@ pub async fn get_instructions(
 
     let official_repo_file = client
         .get(format!(
-        "https://raw.githubusercontent.com/MrDogeBro/droid-repos/HEAD/official/{pkg_path}/{pkg}.yaml",
-        pkg_path = pkg_path,
-        pkg = package
-    ))
+            "https://raw.githubusercontent.com/droid-pkg/repos/HEAD/official/{pkg_path}/{pkg}.yaml",
+            pkg_path = pkg_path,
+            pkg = package
+        ))
         .send()
         .await?
         .text()
@@ -92,7 +92,7 @@ pub async fn get_instructions(
 
     let user_repo_file = client
         .get(format!(
-            "https://raw.githubusercontent.com/MrDogeBro/droid-repos/HEAD/user/{pkg_path}/{pkg}.yaml",
+            "https://raw.githubusercontent.com/droid-pkg/repos/HEAD/user/{pkg_path}/{pkg}.yaml",
             pkg_path = pkg_path,
             pkg = package
         ))
