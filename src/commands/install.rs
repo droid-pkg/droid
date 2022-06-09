@@ -28,7 +28,7 @@ pub async fn install(package: String) -> Result<i32> {
     // use when wanting to test with a local file
     let instructions_file = RetreviedInstructions {
         official: false,
-        data: fs::read_to_string("./demo-files/quicknav.yaml")?,
+        data: fs::read_to_string("./demo-files/quicknav.toml")?,
     };
 
     let instructions = utils::InstallInstructions::parse(instructions_file.data)?;
@@ -36,7 +36,7 @@ pub async fn install(package: String) -> Result<i32> {
     let releases = client
         .get(format!(
             "https://api.github.com/repos/{}/{}/releases/{}",
-            instructions.repo_name, instructions.repo_name, "latest"
+            instructions.info.repo_name, instructions.info.repo_name, "latest"
         ))
         .headers(headers)
         .send()
@@ -45,7 +45,7 @@ pub async fn install(package: String) -> Result<i32> {
         .await?;
 
     if instructions_file.official {
-        if instructions.types.iter().any(|t| t == "bin") {
+        if instructions.dist.types.iter().any(|t| t == "bin") {
             install_bin(releases, instructions, droid_bin_path).await?;
         }
     } else {
@@ -116,7 +116,7 @@ pub async fn install_bin(
     instructions: utils::InstallInstructions,
     droid_bin_path: String,
 ) -> Result<i32> {
-    let bin = instructions.bin;
+    let bin = instructions.dist.bin;
 
     if let Some(bin) = bin {
         let file_path = format!("{}/{}", &droid_bin_path, bin.file_name);
@@ -124,8 +124,8 @@ pub async fn install_bin(
         utils::download(
             format!(
                 "https://github.com/{}/{}/releases/download/{}/{}",
-                instructions.repo_owner,
-                instructions.repo_name,
+                instructions.info.repo_owner,
+                instructions.info.repo_name,
                 releases["tag_name"].as_str().unwrap(),
                 bin.file_name
             ),
