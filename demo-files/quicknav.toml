@@ -1,0 +1,20 @@
+[info]
+name = "quicknav"
+description = "A way to quickly navigate your filesystem from the command line."
+authors = ["MrDogeBro"]
+repo_owner = "MrDogeBro"
+repo_name = "quicknav"
+license = "MIT"
+version_prefix = "v"
+
+[dist]
+types = ["bin", "source"]
+depends = ["rust"]
+
+[dist.bin]
+file_name = "quicknav"
+
+[dist.build]
+depends = []
+output_file = "target/release/quicknav"
+commands = ["cargo build --release --all-features"]
