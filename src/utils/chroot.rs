@@ -27,7 +27,12 @@ pub async fn chroot(path: String) -> Result<()> {
 }
 
 async fn macos_chroot(path: String) -> Result<()> {
-    let copy: Vec<&str> = vec!["/bin/*", "/usr/lib/dyld", "/usr/lib/system/**/*"];
+    let copy: Vec<&str> = vec![
+        "/bin/*",
+        "/usr/lib/dyld",
+        "/usr/lib/system/**/*",
+        "/usr/bin/**/*",
+    ];
     let mut files: Vec<String> = vec![];
     let mut depends: Vec<String> = vec![];
 

@@ -5,6 +5,7 @@ extern crate serde_derive;
 extern crate glob;
 
 mod commands;
+mod config;
 mod utils;
 
 use anyhow::Result;

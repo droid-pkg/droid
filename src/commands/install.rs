@@ -4,6 +4,7 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use uuid::Uuid;
 
+use crate::config;
 use crate::utils;
 
 pub struct RetreviedInstructions {
@@ -12,16 +13,14 @@ pub struct RetreviedInstructions {
 }
 
 pub async fn install(package: String) -> Result<i32> {
+    let config = config::Config::load()?;
     let client = reqwest::Client::new();
-    let droid_path = format!("/usr/local/droid");
-    let droid_bin_path = format!("{}/bin", droid_path);
-    let droid_temp_path = format!("{}/temp", droid_path);
 
     let mut headers = HeaderMap::new();
     headers.insert(USER_AGENT, HeaderValue::from_static("reqwest"));
 
-    fs::create_dir_all(&droid_bin_path)?;
-    fs::create_dir_all(&droid_temp_path)?;
+    fs::create_dir_all(&config.droid_bin_path)?;
+    fs::create_dir_all(&config.droid_temp_path)?;
 
     // use in prod and when testing with files from repos
     // let instructions_file = get_instructions(client.clone(), package).await?;
@@ -46,15 +45,22 @@ pub async fn install(package: String) -> Result<i32> {
 
     if instructions_file.official {
         if instructions.dist.types.iter().any(|t| t == "bin") {
-            install_bin(releases, instructions, droid_bin_path).await?;
+            install_bin(releases, instructions, config.droid_bin_path).await?;
         }
     } else {
         // if instructions.types.iter().any(|t| t == "source") {
         // install_bin(releases, instructions, droid_bin_path).await?;
         // }
-        let chroot_path = format!("{}/{}", droid_temp_path, Uuid::new_v4());
+        let chroot_path = format!("{}/{}", config.droid_temp_path, Uuid::new_v4());
 
-        utils::build(chroot_path, client, instructions).await?;
+        utils::build(
+            chroot_path,
+            client,
+            instructions,
+            releases,
+            config.droid_bin_path,
+        )
+        .await?;
     }
 
     Ok(0)

@@ -1,12 +1,12 @@
 use anyhow::Result;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InstallInstructions {
     pub info: Info,
     pub dist: Dist,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Info {
     pub name: String,
     pub description: String,
@@ -17,7 +17,7 @@ pub struct Info {
     pub version_prefix: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Dist {
     pub types: Vec<String>,
     pub depends: Vec<String>,
@@ -25,14 +25,14 @@ pub struct Dist {
     pub bin: Option<Bin>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Build {
     pub depends: Vec<String>,
     pub output_file: String,
     pub commands: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Bin {
     pub file_name: String,
 }
